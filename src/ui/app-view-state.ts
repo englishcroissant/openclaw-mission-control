@@ -41,6 +41,7 @@ export type AppViewState = {
   password: string;
   tab: Tab;
   homeData: HomeData;
+  homeChatOpen: boolean;
   onboarding: boolean;
   basePath: string;
   connected: boolean;

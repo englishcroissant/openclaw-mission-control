@@ -219,6 +219,14 @@ export function renderApp(state: AppViewState) {
                   // Stub: navigate to project board (not yet implemented)
                   console.log("Navigate to project:", projectId);
                 },
+                chatOpen: state.homeChatOpen,
+                onOpenChat: () => {
+                  if (state.homeChatOpen) {
+                    state.homeChatOpen = false;
+                  } else {
+                    state.homeChatOpen = true;
+                  }
+                },
               })
             : nothing
         }

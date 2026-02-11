@@ -6,6 +6,8 @@ export type HomeProps = {
   homeData: HomeData;
   onRefresh: () => void;
   onProjectClick: (projectId: string) => void;
+  onOpenChat: () => void;
+  chatOpen: boolean;
 };
 
 function renderProjectCard(card: ProjectCard, onProjectClick: (id: string) => void) {
@@ -84,7 +86,7 @@ function parseStandup(content: string): {
 }
 
 export function renderHome(props: HomeProps) {
-  const { homeData, onRefresh, onProjectClick } = props;
+  const { homeData, onRefresh, onProjectClick, onOpenChat, chatOpen } = props;
 
   if (homeData.loading && homeData.projects.length === 0) {
     return html`<div class="home-loading" role="status" aria-live="polite">Loading dashboard…</div>`;
@@ -102,13 +104,19 @@ export function renderHome(props: HomeProps) {
   const standup = parseStandup(homeData.standupContent);
 
   return html`
-    <div class="home-dashboard">
-      <!-- Project Grid -->
-      <section class="home-section" aria-labelledby="projects-heading">
-        <div class="home-section-header">
-          <h2 id="projects-heading">Projects</h2>
-          <button class="btn btn-sm" @click=${onRefresh} aria-label="Refresh dashboard">↻ Refresh</button>
-        </div>
+    <div class="home-layout ${chatOpen ? "home-layout--chat-open" : ""}">
+      <div class="home-dashboard">
+        <!-- Project Grid -->
+        <section class="home-section" aria-labelledby="projects-heading">
+          <div class="home-section-header">
+            <h2 id="projects-heading">Projects</h2>
+            <div class="home-section-actions">
+              <button class="btn btn-sm" @click=${onRefresh} aria-label="Refresh dashboard">↻ Refresh</button>
+              <button class="btn btn-sm btn-chat-toggle" @click=${onOpenChat} aria-label="${chatOpen ? "Close" : "Open"} CEO Office chat">
+                💬 ${chatOpen ? "Close Chat" : "CEO Office"}
+              </button>
+            </div>
+          </div>
         ${homeData.projects.length === 0
           ? html`<p class="home-empty">No active projects</p>`
           : html`
@@ -184,7 +192,19 @@ export function renderHome(props: HomeProps) {
                   : nothing}
               </div>
             `}
-      </section>
+        </section>
+      </div>
+      ${chatOpen
+        ? html`
+            <aside class="home-chat-sidebar" aria-label="CEO Office Chat">
+              <div class="home-chat-placeholder">
+                <p>💬 Chat with CEO Office</p>
+                <p class="home-chat-hint">Session: <code>agent:main:main</code></p>
+                <button class="btn" @click=${onOpenChat}>Switch to Chat Tab →</button>
+              </div>
+            </aside>
+          `
+        : nothing}
     </div>
   `;
 }

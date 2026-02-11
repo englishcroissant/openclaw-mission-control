@@ -110,6 +110,7 @@ export class OpenClawApp extends LitElement {
   @state() tab: Tab = "home";
   @state() onboarding = resolveOnboardingMode();
   @state() homeData = defaultHomeData();
+  @state() homeChatOpen = false;
   @state() connected = false;
   @state() theme: ThemeMode = this.settings.theme ?? "system";
   @state() themeResolved: ResolvedTheme = "dark";
