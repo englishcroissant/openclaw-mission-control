@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Simple WebSocket Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        .log { margin: 5px 0; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Authentication Test</h1>
+    <div id="log"></div>
+    
+    <script>
+        const log = document.getElementById('log');
+        function addLog(msg, cls = '') {
+            const div = document.createElement('div');
+            div.className = 'log ' + cls;
+            div.textContent = `[${new Date().toISOString()}] ${msg}`;
+            log.appendChild(div);
+        }
+        
+        addLog('Connecting to Gateway...');
+        
+        const ws = new WebSocket('ws://100.71.186.68:18789');
+        
+        ws.onopen = () => {
+            addLog('✅ WebSocket opened', 'success');
+            
+            // Send hello message with authentication
+            const hello = {
+                type: 'hello',
+                protocol: 1,
+                token: '38d96e2f252b5e85f4aeefb614a16e44456e6a4ca9860ca1',
+                clientId: 'test-client',
+                clientMode: 'webchat'
+            };
+            
+            addLog('Sending hello message...');
+            ws.send(JSON.stringify(hello));
+        };
+        
+        ws.onmessage = (event) => {
+            addLog(`📨 Received: ${event.data}`, 'success');
+            try {
+                const msg = JSON.parse(event.data);
+                addLog(`   Type: ${msg.type}`, 'success');
+                if (msg.type === 'hello-ok') {
+                    addLog('✅ Authentication successful!', 'success');
+                }
+            } catch(e) {
+                addLog(`   (non-JSON message)`, '');
+            }
+        };
+        
+        ws.onerror = (error) => {
+            addLog(`❌ WebSocket error: ${error}`, 'error');
+        };
+        
+        ws.onclose = (event) => {
+            addLog(`WebSocket closed: code=${event.code} reason="${event.reason}"`, event.code === 1000 ? '' : 'error');
+        };
+    </script>
+</body>
+</html>

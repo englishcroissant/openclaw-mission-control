@@ -33,6 +33,14 @@ export default defineConfig(() => {
       emptyOutDir: true,
       sourcemap: true,
     },
+    esbuild: {
+      tsconfigRaw: {
+        compilerOptions: {
+          experimentalDecorators: true,
+          useDefineForClassFields: false,
+        },
+      },
+    },
     plugins: [workspaceApiPlugin()],
     server: {
       host: true,

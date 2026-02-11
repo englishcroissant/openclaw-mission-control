@@ -32,16 +32,21 @@
     <script>
       // Debug logger
       window.debugLog = function(msg, type = 'info') {
-        const overlay = document.getElementById('debug-overlay') || createDebugOverlay();
-        const div = document.createElement('div');
-        div.className = `log ${type}`;
-        div.textContent = `[${new Date().toISOString().slice(11, 23)}] ${msg}`;
-        overlay.appendChild(div);
-        overlay.scrollTop = overlay.scrollHeight;
+        try {
+          const overlay = document.getElementById('debug-overlay') || createDebugOverlay();
+          if (overlay) {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toISOString().slice(11, 23)}] ${msg}`;
+            overlay.appendChild(div);
+            overlay.scrollTop = overlay.scrollHeight;
+          }
+        } catch {}
         console.log(`[DEBUG] ${msg}`);
       };
       
       function createDebugOverlay() {
+        if (!document.body) return null;
         const overlay = document.createElement('div');
         overlay.id = 'debug-overlay';
         document.body.appendChild(overlay);
