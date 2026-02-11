@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Control Debug</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #2a2a2a;
+            border-left: 4px solid #00ff00;
+        }
+        .error {
+            border-left-color: #ff0000;
+            color: #ff0000;
+        }
+        .success {
+            border-left-color: #00ff00;
+        }
+        .info {
+            border-left-color: #ffaa00;
+            color: #ffaa00;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Mission Control Debug Console</h1>
+    <div id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = `[${new Date().toISOString()}] ${message}`;
+            log.appendChild(div);
+            console.log(message);
+        }
+
+        addLog('🚀 Debug page loaded', 'success');
+        addLog(`Current URL: ${window.location.href}`, 'info');
+        addLog(`User Agent: ${navigator.userAgent}`, 'info');
+
+        // Test Gateway WebSocket connection
+        const gatewayUrl = 'ws://100.71.186.68:18789';
+        addLog(`Attempting WebSocket connection to: ${gatewayUrl}`, 'info');
+
+        try {
+            const ws = new WebSocket(gatewayUrl);
+            
+            ws.addEventListener('open', () => {
+                addLog('✅ WebSocket connected!', 'success');
+                addLog('Gateway is reachable and accepting connections', 'success');
+                ws.close();
+            });
+
+            ws.addEventListener('error', (error) => {
+                addLog(`❌ WebSocket error: ${error}`, 'error');
+                addLog('Possible issues: CORS blocking, Gateway not running, firewall', 'error');
+            });
+
+            ws.addEventListener('close', (event) => {
+                addLog(`WebSocket closed: code=${event.code} reason="${event.reason}"`, 'info');
+            });
+
+        } catch (e) {
+            addLog(`❌ Exception creating WebSocket: ${e.message}`, 'error');
+        }
+
+        // Test API endpoints
+        addLog('Testing Vite plugin API endpoints...', 'info');
+        
+        fetch('/api/projects')
+            .then(res => res.json())
+            .then(data => {
+                addLog(`✅ /api/projects responding: ${data.projects.length} projects`, 'success');
+                addLog(`Project data: ${JSON.stringify(data, null, 2)}`, 'info');
+            })
+            .catch(err => {
+                addLog(`❌ /api/projects failed: ${err.message}`, 'error');
+            });
+
+        fetch('/api/standup')
+            .then(res => res.text())
+            .then(data => {
+                addLog(`✅ /api/standup responding: ${data.length} chars`, 'success');
+            })
+            .catch(err => {
+                addLog(`❌ /api/standup failed: ${err.message}`, 'error');
+            });
+
+        // Check if main app files load
+        addLog('Testing main app resources...', 'info');
+        
+        fetch('/src/main.ts')
+            .then(res => {
+                addLog(`✅ /src/main.ts loads: ${res.status} ${res.statusText}`, 'success');
+            })
+            .catch(err => {
+                addLog(`❌ /src/main.ts failed: ${err.message}`, 'error');
+            });
+    </script>
+</body>
+</html>
