@@ -18,6 +18,28 @@ Mission Control is a standalone frontend for managing multi-agent workflows, pro
 - **State:** Lit `@state()` properties (no external state library)
 - **Routing:** Custom tab-based with `history.pushState`
 
+## Home Page (Mission Control Dashboard)
+
+The default landing page (`/` or `/home`) shows:
+
+1. **Project Grid** — Cards for each project showing tasks in progress, tasks needing review, and last update time. Data from `workspace/state/projects.json` + `workspace/projects/*/board.json`.
+2. **Review Queue** — Tasks with `reviewType: "sam-required"` across all projects, sorted by priority.
+3. **Standup Summary** — Parsed from `workspace/standup-latest.md` showing completed, in-progress, and attention-needed items.
+
+Data auto-refreshes every 30 seconds. The Vite dev server includes a plugin that serves workspace files as API endpoints (`/api/projects`, `/api/board/:projectId`, `/api/standup`).
+
+### Testing the Home Page
+
+```bash
+# Set workspace path (defaults to /home/openclaw/.openclaw/workspace)
+export OPENCLAW_WORKSPACE=/path/to/workspace
+
+# Start dev server
+npm run dev
+
+# Open http://localhost:5173 — you'll land on the Home page
+```
+
 ## Quick Start
 
 ```bash
@@ -66,6 +88,7 @@ See [Gateway UI Architecture Brief](docs/gateway-ui-architecture.md) for detaile
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `OPENCLAW_CONTROL_UI_BASE_PATH` | Base path for the app | `./` |
+| `OPENCLAW_WORKSPACE` | Path to OpenClaw workspace directory | `/home/openclaw/.openclaw/workspace` |
 
 ## Origin
 
