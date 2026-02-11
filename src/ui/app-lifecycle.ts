@@ -9,6 +9,8 @@ import {
   stopDebugPolling,
   startHomePolling,
   stopHomePolling,
+  startProjectBoardPolling,
+  stopProjectBoardPolling,
 } from "./app-polling.ts";
 import { observeTopbar, scheduleChatScroll, scheduleLogsScroll } from "./app-scroll.ts";
 import {
@@ -52,6 +54,7 @@ export function handleConnected(host: LifecycleHost) {
     startDebugPolling(host as unknown as Parameters<typeof startDebugPolling>[0]);
   }
   startHomePolling(host as unknown as Parameters<typeof startHomePolling>[0]);
+  startProjectBoardPolling(host as unknown as Parameters<typeof startProjectBoardPolling>[0]);
 }
 
 export function handleFirstUpdated(host: LifecycleHost) {
@@ -64,6 +67,7 @@ export function handleDisconnected(host: LifecycleHost) {
   stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
   stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
   stopHomePolling(host as unknown as Parameters<typeof stopHomePolling>[0]);
+  stopProjectBoardPolling(host as unknown as Parameters<typeof stopProjectBoardPolling>[0]);
   detachThemeListener(host as unknown as Parameters<typeof detachThemeListener>[0]);
   host.topbarObserver?.disconnect();
   host.topbarObserver = null;

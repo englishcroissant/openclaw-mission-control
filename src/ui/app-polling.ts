@@ -1,6 +1,7 @@
 import type { OpenClawApp } from "./app.ts";
 import { loadDebug } from "./controllers/debug.ts";
 import { loadHomeData } from "./controllers/home-data.ts";
+import { loadProjectBoard } from "./controllers/project-board.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 
@@ -9,7 +10,9 @@ type PollingHost = {
   logsPollInterval: number | null;
   debugPollInterval: number | null;
   homePollInterval: number | null;
+  projectBoardPollInterval: number | null;
   tab: string;
+  activeProjectId: string | null;
 };
 
 export function startNodesPolling(host: PollingHost) {
@@ -90,4 +93,24 @@ export function stopHomePolling(host: PollingHost) {
   }
   clearInterval(host.homePollInterval);
   host.homePollInterval = null;
+}
+
+export function startProjectBoardPolling(host: PollingHost) {
+  if (host.projectBoardPollInterval != null) {
+    return;
+  }
+  host.projectBoardPollInterval = window.setInterval(() => {
+    if (host.tab !== "home" || !host.activeProjectId) {
+      return;
+    }
+    void loadProjectBoard(host as unknown as OpenClawApp, host.activeProjectId);
+  }, 30000);
+}
+
+export function stopProjectBoardPolling(host: PollingHost) {
+  if (host.projectBoardPollInterval == null) {
+    return;
+  }
+  clearInterval(host.projectBoardPollInterval);
+  host.projectBoardPollInterval = null;
 }
