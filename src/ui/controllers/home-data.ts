@@ -118,12 +118,12 @@ export async function loadHomeData(state: HomeDataState): Promise<void> {
       const tasks = board?.tasks || [];
       const inProgress = tasks.filter((t) => t.state === "in-progress" || t.state === "active").length;
       const needsReview = tasks.filter(
-        (t) => t.reviewType === "sam-required" && t.state !== "done",
+        (t) => (t.state === "review" || t.state === "in-review") || (t.reviewType === "sam-required" && t.state !== "done"),
       ).length;
 
-      // Collect review items
+      // Collect review items - tasks in review state OR requiring sam review
       for (const task of tasks) {
-        if (task.reviewType === "sam-required" && task.state !== "done") {
+        if ((task.state === "review" || task.state === "in-review") || (task.reviewType === "sam-required" && task.state !== "done")) {
           reviewQueue.push({
             taskId: task.id,
             title: task.title,

@@ -455,6 +455,64 @@
   text-align: center;
 }
 
+/* Chat sidebar header */
+.chat-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color, #333);
+  width: 100%;
+}
+
+.chat-sidebar-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary, #eee);
+}
+
+.chat-close-btn {
+  flex-shrink: 0;
+  color: var(--text-secondary, #aaa) !important;
+  font-size: 1.1rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.chat-close-btn:hover {
+  color: var(--text-primary, #eee) !important;
+}
+
+/* WCAG AA Contrast Fixes — minimum 4.5:1 text, 3:1 UI components */
+
+.task-date,
+.git-files,
+.git-time {
+  color: var(--text-secondary, #999);  /* was #666, improved for contrast */
+}
+
+.project-lead,
+.project-updated {
+  color: var(--text-secondary, #999);  /* was #888, improved */
+}
+
+.board-empty {
+  color: var(--text-secondary, #999);  /* was #666, improved */
+}
+
+.board-column-count {
+  color: var(--text-secondary, #bbb);  /* was #aaa, improved */
+}
+
+.task-move-btn {
+  opacity: 0.85;  /* was 0.7, improved */
+  color: var(--text-primary, #ccc);
+}
+
+.btn-chat-toggle {
+  color: var(--text-primary, #ddd);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .board-kanban {

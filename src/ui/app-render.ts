@@ -236,12 +236,18 @@ export function renderApp(state: AppViewState) {
                 onToggleShowAllDone: () => {
                   state.projectBoard = { ...state.projectBoard, showAllDone: !state.projectBoard.showAllDone };
                 },
+                onToggleShowAllBacklog: () => {
+                  state.projectBoard = { ...state.projectBoard, showAllBacklog: !state.projectBoard.showAllBacklog };
+                },
                 onRefresh: () => {
                   void loadProjectBoard(state, state.activeProjectId!);
                 },
                 chatOpen: state.projectChatOpen,
                 onOpenChat: () => {
                   state.projectChatOpen = !state.projectChatOpen;
+                },
+                onCloseChat: () => {
+                  state.projectChatOpen = false;
                 },
               })
             : nothing

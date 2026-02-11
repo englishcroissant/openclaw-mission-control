@@ -4,9 +4,12 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
 import type { Plugin } from "vite";
 import type { IncomingMessage, ServerResponse } from "node:http";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const WORKSPACE = process.env.OPENCLAW_WORKSPACE || "/home/openclaw/.openclaw/workspace";
 
@@ -87,7 +90,7 @@ export function workspaceApiPlugin(): Plugin {
         }
       });
 
-      // Git log endpoint
+      // Git log endpoint — searches workspace repo (project dir) + mission-control repo
       server.middlewares.use("/api/git-log/", (req: IncomingMessage, res: ServerResponse) => {
         const projectId = req.url?.replace(/^\//, "").replace(/\/$/, "") || "";
         if (!projectId || projectId.includes("..")) {
@@ -96,38 +99,57 @@ export function workspaceApiPlugin(): Plugin {
           return;
         }
         const projectDir = path.join(WORKSPACE, `projects/${projectId}`);
+        const missionControlDir = path.resolve(__dirname);
         res.setHeader("Content-Type", "application/json");
         res.setHeader("Access-Control-Allow-Origin", "*");
-        try {
+
+        function parseGitLog(cwd: string, extraArgs: string): { hash: string; author: string; timestamp: string; message: string; filesChanged: number }[] {
           const SEP = "|||";
-          const gitOutput = execSync(
-            `git log --format="%H${SEP}%an${SEP}%aI${SEP}%s" -20 -- "${projectDir}"`,
-            { cwd: WORKSPACE, encoding: "utf-8", timeout: 5000 },
-          );
-          const commits = gitOutput
-            .trim()
-            .split("\n")
-            .filter(Boolean)
-            .map((line) => {
-              try {
-                const [hash, author, timestamp, ...msgParts] = line.split(SEP);
-                const message = msgParts.join(SEP);
-                let filesChanged = 0;
+          try {
+            const gitOutput = execSync(
+              `git log --format="%H${SEP}%an${SEP}%aI${SEP}%s" -20 ${extraArgs}`,
+              { cwd, encoding: "utf-8", timeout: 5000 },
+            );
+            return gitOutput
+              .trim()
+              .split("\n")
+              .filter(Boolean)
+              .map((line) => {
                 try {
-                  const files = execSync(
-                    `git diff-tree --no-commit-id --name-only -r ${hash} -- "${projectDir}"`,
-                    { cwd: WORKSPACE, encoding: "utf-8", timeout: 3000 },
-                  );
-                  filesChanged = files.trim().split("\n").filter(Boolean).length;
-                } catch { /* ignore */ }
-                return { hash, author, timestamp, message, filesChanged };
-              } catch {
-                return null;
-              }
-            })
-            .filter(Boolean);
-          res.end(JSON.stringify({ commits }));
-        } catch (err) {
+                  const [hash, author, timestamp, ...msgParts] = line.split(SEP);
+                  const message = msgParts.join(SEP);
+                  let filesChanged = 0;
+                  try {
+                    const files = execSync(
+                      `git diff-tree --no-commit-id --name-only -r ${hash}`,
+                      { cwd, encoding: "utf-8", timeout: 3000 },
+                    );
+                    filesChanged = files.trim().split("\n").filter(Boolean).length;
+                  } catch { /* ignore */ }
+                  return { hash, author, timestamp, message, filesChanged };
+                } catch {
+                  return null;
+                }
+              })
+              .filter(Boolean) as { hash: string; author: string; timestamp: string; message: string; filesChanged: number }[];
+          } catch {
+            return [];
+          }
+        }
+
+        try {
+          // Workspace commits touching the project directory
+          const workspaceCommits = parseGitLog(WORKSPACE, `-- "${projectDir}"`);
+          // Mission-control repo commits (UI code)
+          const mcCommits = parseGitLog(missionControlDir, "");
+          // Merge, dedupe by hash, sort by timestamp desc
+          const seen = new Set<string>();
+          const allCommits = [...workspaceCommits, ...mcCommits]
+            .filter((c) => { if (seen.has(c.hash)) return false; seen.add(c.hash); return true; })
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 30);
+          res.end(JSON.stringify({ commits: allCommits }));
+        } catch {
           res.end(JSON.stringify({ commits: [], warning: "No git history available" }));
         }
       });

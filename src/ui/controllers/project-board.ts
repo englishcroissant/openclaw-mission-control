@@ -24,6 +24,7 @@ export interface ProjectBoardData {
   commitDiff: string | null;
   commitDiffLoading: boolean;
   showAllDone: boolean;
+  showAllBacklog: boolean;
 }
 
 export type ProjectBoardState = {
@@ -44,6 +45,7 @@ export function defaultProjectBoard(): ProjectBoardData {
     commitDiff: null,
     commitDiffLoading: false,
     showAllDone: false,
+    showAllBacklog: false,
   };
 }
 
@@ -172,6 +174,7 @@ function priorityOrder(p: string): number {
 export function groupTasksByColumn(
   tasks: BoardTask[],
   showAllDone: boolean,
+  showAllBacklog: boolean = false,
 ): Record<ColumnKey, BoardTask[]> {
   const groups: Record<ColumnKey, BoardTask[]> = {
     backlog: [],
@@ -216,6 +219,11 @@ export function groupTasksByColumn(
       if (pd !== 0) return pd;
       return (a.created || "").localeCompare(b.created || "");
     });
+  }
+
+  // Truncate backlog to 10 items unless showAll
+  if (!showAllBacklog && groups.backlog.length > 10) {
+    groups.backlog = groups.backlog.slice(0, 10);
   }
 
   return groups;

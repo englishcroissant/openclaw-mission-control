@@ -100,7 +100,7 @@ export function startProjectBoardPolling(host: PollingHost) {
     return;
   }
   host.projectBoardPollInterval = window.setInterval(() => {
-    if (host.tab !== "home" || !host.activeProjectId) {
+    if (!host.activeProjectId) {
       return;
     }
     void loadProjectBoard(host as unknown as OpenClawApp, host.activeProjectId);

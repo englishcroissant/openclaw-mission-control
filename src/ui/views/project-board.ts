@@ -12,9 +12,11 @@ export type ProjectBoardProps = {
   onTaskDetail: (taskId: string | null) => void;
   onCommitClick: (hash: string | null) => void;
   onToggleShowAllDone: () => void;
+  onToggleShowAllBacklog: () => void;
   onRefresh: () => void;
   chatOpen: boolean;
   onOpenChat: () => void;
+  onCloseChat: () => void;
 };
 
 function priorityBadge(priority: string | undefined) {
@@ -83,12 +85,13 @@ function renderColumn(
   columnKey: ColumnKey,
   label: string,
   tasks: BoardTask[],
-  allDoneCount: number,
-  showAllDone: boolean,
+  totalCount: number,
+  showAll: boolean,
   onTaskDetail: (id: string) => void,
   onMoveTask: (taskId: string, newState: string) => void,
-  onToggleShowAllDone: () => void,
+  onToggleShowAll: () => void,
 ) {
+  const isTruncatable = columnKey === "done" || columnKey === "backlog";
   return html`
     <section class="board-column" aria-label="${label} column">
       <header class="board-column-header">
@@ -99,10 +102,10 @@ function renderColumn(
         ${tasks.map((t) => renderTaskCard(t, columnKey, onTaskDetail, onMoveTask))}
         ${tasks.length === 0 ? html`<p class="board-empty">No tasks</p>` : nothing}
       </div>
-      ${columnKey === "done" && allDoneCount > tasks.length
+      ${isTruncatable && totalCount > tasks.length
         ? html`
-            <button class="btn btn-xs board-view-all" @click=${onToggleShowAllDone}>
-              ${showAllDone ? "Show recent only" : `View all (${allDoneCount} total)`}
+            <button class="btn btn-xs board-view-all" @click=${onToggleShowAll}>
+              ${showAll ? "Show fewer" : `View all (${totalCount} total)`}
             </button>
           `
         : nothing}
@@ -254,7 +257,7 @@ function renderGitFeed(
 }
 
 export function renderProjectBoard(props: ProjectBoardProps) {
-  const { data, projectId, onBack, onMoveTask, onTaskDetail, onCommitClick, onToggleShowAllDone, onRefresh, chatOpen, onOpenChat } = props;
+  const { data, projectId, onBack, onMoveTask, onTaskDetail, onCommitClick, onToggleShowAllDone, onToggleShowAllBacklog, onRefresh, chatOpen, onOpenChat, onCloseChat } = props;
 
   if (data.loading && !data.board) {
     return html`<div class="home-loading" role="status" aria-live="polite">Loading project board…</div>`;
@@ -271,9 +274,12 @@ export function renderProjectBoard(props: ProjectBoardProps) {
 
   const project = data.project;
   const tasks = data.board?.tasks || [];
-  const grouped = groupTasksByColumn(tasks, data.showAllDone);
+  const grouped = groupTasksByColumn(tasks, data.showAllDone, data.showAllBacklog);
   const allDoneCount = tasks.filter(
     (t) => t.state === "done" || t.state === "completed",
+  ).length;
+  const allBacklogCount = tasks.filter(
+    (t) => t.state !== "done" && t.state !== "completed" && t.state !== "in-progress" && t.state !== "active" && t.state !== "review" && t.state !== "in-review" && t.state !== "planned",
   ).length;
 
   const detailTask = data.taskDetailId
@@ -318,11 +324,11 @@ export function renderProjectBoard(props: ProjectBoardProps) {
               col.key,
               col.label,
               grouped[col.key],
-              col.key === "done" ? allDoneCount : 0,
-              data.showAllDone,
+              col.key === "done" ? allDoneCount : col.key === "backlog" ? allBacklogCount : 0,
+              col.key === "done" ? data.showAllDone : col.key === "backlog" ? (data.showAllBacklog ?? false) : false,
               (id) => onTaskDetail(id),
               onMoveTask,
-              onToggleShowAllDone,
+              col.key === "done" ? onToggleShowAllDone : col.key === "backlog" ? onToggleShowAllBacklog : () => {},
             ),
           )}
         </section>
@@ -342,9 +348,12 @@ export function renderProjectBoard(props: ProjectBoardProps) {
 
       ${chatOpen
         ? html`
-            <aside class="project-chat-sidebar">
+            <aside class="project-chat-sidebar" aria-label="Project Chat">
+              <header class="chat-sidebar-header">
+                <span class="chat-sidebar-title">💬 Project: ${project?.name || projectId}</span>
+                <button class="btn btn-sm modal-close chat-close-btn" @click=${onCloseChat} aria-label="Close chat panel">✕</button>
+              </header>
               <div class="home-chat-placeholder">
-                <p>💬 Project: ${project?.name || projectId}</p>
                 <p class="home-chat-hint">
                   Session: <code>agent:main:project:${projectId}</code>
                 </p>
