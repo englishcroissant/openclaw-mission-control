@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import { workspaceApiPlugin } from "./vite-workspace-api.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +33,7 @@ export default defineConfig(() => {
       emptyOutDir: true,
       sourcemap: true,
     },
+    plugins: [workspaceApiPlugin()],
     server: {
       host: true,
       port: 5173,

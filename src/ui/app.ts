@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import type { EventLogEntry } from "./app-events.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
+import { defaultHomeData } from "./controllers/home-data.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { SkillMessage } from "./controllers/skills.ts";
@@ -106,8 +107,9 @@ function resolveOnboardingMode(): boolean {
 export class OpenClawApp extends LitElement {
   @state() settings: UiSettings = loadSettings();
   @state() password = "";
-  @state() tab: Tab = "chat";
+  @state() tab: Tab = "home";
   @state() onboarding = resolveOnboardingMode();
+  @state() homeData = defaultHomeData();
   @state() connected = false;
   @state() theme: ThemeMode = this.settings.theme ?? "system";
   @state() themeResolved: ResolvedTheme = "dark";
@@ -333,6 +335,7 @@ export class OpenClawApp extends LitElement {
   private nodesPollInterval: number | null = null;
   private logsPollInterval: number | null = null;
   private debugPollInterval: number | null = null;
+  private homePollInterval: number | null = null;
   private logsScrollFrame: number | null = null;
   private toolStreamById = new Map<string, ToolStreamEntry>();
   private toolStreamOrder: string[] = [];

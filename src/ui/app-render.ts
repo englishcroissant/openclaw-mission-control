@@ -77,6 +77,8 @@ import { renderOverview } from "./views/overview.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
 import { renderUsage } from "./views/usage.ts";
+import { renderHome } from "./views/home.ts";
+import { loadHomeData } from "./controllers/home-data.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
@@ -207,6 +209,19 @@ export function renderApp(state: AppViewState) {
             ${isChat ? renderChatControls(state) : nothing}
           </div>
         </section>
+
+        ${
+          state.tab === "home"
+            ? renderHome({
+                homeData: state.homeData,
+                onRefresh: () => loadHomeData(state),
+                onProjectClick: (projectId) => {
+                  // Stub: navigate to project board (not yet implemented)
+                  console.log("Navigate to project:", projectId);
+                },
+              })
+            : nothing
+        }
 
         ${
           state.tab === "overview"

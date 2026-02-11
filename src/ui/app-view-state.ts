@@ -1,6 +1,7 @@
 import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus } from "./app-tool-stream.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
+import type { HomeData } from "./controllers/home-data.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { SkillMessage } from "./controllers/skills.ts";
@@ -39,6 +40,7 @@ export type AppViewState = {
   settings: UiSettings;
   password: string;
   tab: Tab;
+  homeData: HomeData;
   onboarding: boolean;
   basePath: string;
   connected: boolean;

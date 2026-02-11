@@ -133,7 +133,7 @@ describe("tabFromPath", () => {
   });
 
   it("returns chat for root path", () => {
-    expect(tabFromPath("/")).toBe("chat");
+    expect(tabFromPath("/")).toBe("home");
   });
 
   it("handles base paths", () => {
