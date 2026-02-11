@@ -123,7 +123,7 @@ export async function loadHomeData(state: HomeDataState): Promise<void> {
 
       // Collect review items
       for (const task of tasks) {
-        if (task.reviewType === "sam-required") {
+        if (task.reviewType === "sam-required" && task.state !== "done") {
           reviewQueue.push({
             taskId: task.id,
             title: task.title,
