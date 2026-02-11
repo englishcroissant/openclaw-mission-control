@@ -2,6 +2,7 @@ import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus } from "./app-tool-stream.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type { HomeData } from "./controllers/home-data.ts";
+import type { ProjectBoardData } from "./controllers/project-board.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { SkillMessage } from "./controllers/skills.ts";
@@ -42,6 +43,9 @@ export type AppViewState = {
   tab: Tab;
   homeData: HomeData;
   homeChatOpen: boolean;
+  activeProjectId: string | null;
+  projectBoard: ProjectBoardData;
+  projectChatOpen: boolean;
   onboarding: boolean;
   basePath: string;
   connected: boolean;

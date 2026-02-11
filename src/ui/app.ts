@@ -4,6 +4,7 @@ import type { EventLogEntry } from "./app-events.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
 import { defaultHomeData } from "./controllers/home-data.ts";
+import { defaultProjectBoard } from "./controllers/project-board.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { SkillMessage } from "./controllers/skills.ts";
@@ -111,6 +112,9 @@ export class OpenClawApp extends LitElement {
   @state() onboarding = resolveOnboardingMode();
   @state() homeData = defaultHomeData();
   @state() homeChatOpen = false;
+  @state() activeProjectId: string | null = null;
+  @state() projectBoard = defaultProjectBoard();
+  @state() projectChatOpen = false;
   @state() connected = false;
   @state() theme: ThemeMode = this.settings.theme ?? "system";
   @state() themeResolved: ResolvedTheme = "dark";

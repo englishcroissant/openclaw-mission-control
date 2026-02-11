@@ -78,7 +78,9 @@ import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
 import { renderUsage } from "./views/usage.ts";
 import { renderHome } from "./views/home.ts";
+import { renderProjectBoard } from "./views/project-board.ts";
 import { loadHomeData } from "./controllers/home-data.ts";
+import { loadProjectBoard, moveTask, loadCommitDiff } from "./controllers/project-board.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
@@ -211,21 +213,52 @@ export function renderApp(state: AppViewState) {
         </section>
 
         ${
-          state.tab === "home"
+          state.tab === "home" && state.activeProjectId
+            ? renderProjectBoard({
+                data: state.projectBoard,
+                projectId: state.activeProjectId,
+                onBack: () => {
+                  state.activeProjectId = null;
+                },
+                onMoveTask: (taskId, newState) => {
+                  void moveTask(state, state.activeProjectId!, taskId, newState);
+                },
+                onTaskDetail: (taskId) => {
+                  state.projectBoard = { ...state.projectBoard, taskDetailId: taskId };
+                },
+                onCommitClick: (hash) => {
+                  if (hash) {
+                    void loadCommitDiff(state, state.activeProjectId!, hash);
+                  } else {
+                    state.projectBoard = { ...state.projectBoard, commitDetailHash: null, commitDiff: null };
+                  }
+                },
+                onToggleShowAllDone: () => {
+                  state.projectBoard = { ...state.projectBoard, showAllDone: !state.projectBoard.showAllDone };
+                },
+                onRefresh: () => {
+                  void loadProjectBoard(state, state.activeProjectId!);
+                },
+                chatOpen: state.projectChatOpen,
+                onOpenChat: () => {
+                  state.projectChatOpen = !state.projectChatOpen;
+                },
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "home" && !state.activeProjectId
             ? renderHome({
                 homeData: state.homeData,
                 onRefresh: () => loadHomeData(state),
                 onProjectClick: (projectId) => {
-                  // Stub: navigate to project board (not yet implemented)
-                  console.log("Navigate to project:", projectId);
+                  state.activeProjectId = projectId;
+                  void loadProjectBoard(state, projectId);
                 },
                 chatOpen: state.homeChatOpen,
                 onOpenChat: () => {
-                  if (state.homeChatOpen) {
-                    state.homeChatOpen = false;
-                  } else {
-                    state.homeChatOpen = true;
-                  }
+                  state.homeChatOpen = !state.homeChatOpen;
                 },
               })
             : nothing
