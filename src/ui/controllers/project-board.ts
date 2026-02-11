@@ -3,7 +3,7 @@
  * Fetches board tasks, git commits, and project metadata.
  */
 
-import type { BoardData, BoardTask, ProjectInfo } from "./home-data.ts";
+import type { BoardData, BoardTask, ProjectInfo, TaskComment, TaskReviewNotes } from "./home-data.ts";
 
 export interface GitCommit {
   hash: string;
@@ -143,6 +143,69 @@ export async function loadCommitDiff(
       commitDiff: "Failed to load diff",
       commitDiffLoading: false,
     };
+  }
+}
+
+export async function addComment(
+  state: ProjectBoardState,
+  projectId: string,
+  taskId: string,
+  author: string,
+  authorType: "human" | "agent",
+  content: string,
+): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE}/api/board/${projectId}/${taskId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ author, authorType, content }),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { comment: TaskComment; task: BoardTask };
+      // Update the task in local state
+      const tasks = state.projectBoard.board?.tasks;
+      if (tasks) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (task) {
+          if (!task.comments) task.comments = [];
+          task.comments.push(data.comment);
+          task.updated = new Date().toISOString();
+          state.projectBoard = { ...state.projectBoard, board: { ...state.projectBoard.board! } };
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Failed to add comment:", err);
+  }
+}
+
+export async function updateReviewNotes(
+  state: ProjectBoardState,
+  projectId: string,
+  taskId: string,
+  content: string,
+  updatedBy: string,
+): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE}/api/board/${projectId}/${taskId}/review-notes`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content, updatedBy }),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { reviewNotes: TaskReviewNotes; task: BoardTask };
+      const tasks = state.projectBoard.board?.tasks;
+      if (tasks) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (task) {
+          task.reviewNotes = data.reviewNotes;
+          task.updated = new Date().toISOString();
+          state.projectBoard = { ...state.projectBoard, board: { ...state.projectBoard.board! } };
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Failed to update review notes:", err);
   }
 }
 

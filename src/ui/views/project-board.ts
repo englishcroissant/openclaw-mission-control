@@ -1,5 +1,5 @@
 import { html, nothing } from "lit";
-import type { BoardTask } from "../controllers/home-data.ts";
+import type { BoardTask, TaskComment } from "../controllers/home-data.ts";
 import type { GitCommit, ProjectBoardData, ColumnKey } from "../controllers/project-board.ts";
 import { COLUMNS, groupTasksByColumn, groupCommitsByDate } from "../controllers/project-board.ts";
 import { formatRelativeTimestamp } from "../format.ts";
@@ -17,6 +17,8 @@ export type ProjectBoardProps = {
   chatOpen: boolean;
   onOpenChat: () => void;
   onCloseChat: () => void;
+  onAddComment: (taskId: string, author: string, authorType: "human" | "agent", content: string) => void;
+  onUpdateReviewNotes: (taskId: string, content: string, updatedBy: string) => void;
 };
 
 function priorityBadge(priority: string | undefined) {
@@ -113,11 +115,49 @@ function renderColumn(
   `;
 }
 
+function renderComment(comment: TaskComment) {
+  const icon = comment.authorType === "agent" ? "🤖" : "🧑";
+  return html`
+    <article class="task-comment" aria-label="Comment by ${comment.author}">
+      <div class="task-comment-header">
+        <span class="task-comment-author">${icon} ${comment.author}</span>
+        <time class="task-comment-time">${formatRelativeTimestamp(new Date(comment.timestamp).getTime())}</time>
+      </div>
+      <p class="task-comment-content">${comment.content}</p>
+    </article>
+  `;
+}
+
 function renderTaskDetailModal(
   task: BoardTask | undefined,
   onClose: () => void,
+  onAddComment: (taskId: string, author: string, authorType: "human" | "agent", content: string) => void,
+  onUpdateReviewNotes: (taskId: string, content: string, updatedBy: string) => void,
 ) {
   if (!task) return nothing;
+
+  const comments = [...(task.comments || [])].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
+
+  const handleCommentSubmit = (e: Event) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const textarea = form.querySelector("textarea") as HTMLTextAreaElement;
+    const content = textarea.value.trim();
+    if (!content) return;
+    onAddComment(task.id, "Sam", "human", content);
+    textarea.value = "";
+  };
+
+  const handleReviewNotesSubmit = (e: Event) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const textarea = form.querySelector("textarea") as HTMLTextAreaElement;
+    const content = textarea.value.trim();
+    if (!content) return;
+    onUpdateReviewNotes(task.id, content, "Sam");
+  };
 
   return html`
     <div class="modal-overlay" @click=${onClose} role="dialog" aria-modal="true" aria-label="Task detail">
@@ -175,6 +215,48 @@ function renderTaskDetailModal(
               </div>
             `
           : nothing}
+
+        <!-- Review Notes Section -->
+        <section class="task-review-notes" aria-labelledby="review-notes-heading">
+          <h4 id="review-notes-heading">📋 Review Notes</h4>
+          ${task.reviewNotes
+            ? html`
+                <div class="review-notes-display">
+                  <p class="review-notes-content">${task.reviewNotes.content}</p>
+                  <span class="review-notes-meta">Updated by ${task.reviewNotes.updatedBy} · ${formatRelativeTimestamp(new Date(task.reviewNotes.updatedAt).getTime())}</span>
+                </div>
+              `
+            : nothing}
+          <form class="review-notes-form" @submit=${handleReviewNotesSubmit}>
+            <textarea
+              class="review-notes-input"
+              placeholder="${task.reviewNotes ? "Update review notes…" : "Add review notes…"}"
+              rows="2"
+              aria-label="Review notes"
+            >${task.reviewNotes?.content || ""}</textarea>
+            <button type="submit" class="btn btn-sm btn-primary">
+              ${task.reviewNotes ? "Update Notes" : "Save Notes"}
+            </button>
+          </form>
+        </section>
+
+        <!-- Comments Section -->
+        <section class="task-comments" aria-labelledby="comments-heading">
+          <h4 id="comments-heading">💬 Comments <span class="comment-count">(${comments.length})</span></h4>
+          ${comments.length > 0
+            ? html`<div class="task-comments-list" role="list">${comments.map(renderComment)}</div>`
+            : html`<p class="task-comments-empty">No comments yet</p>`}
+          <form class="task-comment-form" @submit=${handleCommentSubmit}>
+            <textarea
+              class="task-comment-input"
+              placeholder="Add a comment…"
+              rows="2"
+              required
+              aria-label="New comment"
+            ></textarea>
+            <button type="submit" class="btn btn-sm btn-primary" aria-label="Post comment">Post Comment</button>
+          </form>
+        </section>
       </div>
     </div>
   `;
@@ -343,7 +425,7 @@ export function renderProjectBoard(props: ProjectBoardProps) {
         )}
 
         <!-- Task Detail Modal -->
-        ${renderTaskDetailModal(detailTask, () => onTaskDetail(null))}
+        ${renderTaskDetailModal(detailTask, () => onTaskDetail(null), props.onAddComment, props.onUpdateReviewNotes)}
       </div>
 
       ${chatOpen

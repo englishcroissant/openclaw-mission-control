@@ -80,7 +80,7 @@ import { renderUsage } from "./views/usage.ts";
 import { renderHome } from "./views/home.ts";
 import { renderProjectBoard } from "./views/project-board.ts";
 import { loadHomeData } from "./controllers/home-data.ts";
-import { loadProjectBoard, moveTask, loadCommitDiff } from "./controllers/project-board.ts";
+import { loadProjectBoard, moveTask, loadCommitDiff, addComment, updateReviewNotes } from "./controllers/project-board.ts";
 
 /** Sync URL search params with current project/task selection */
 function syncProjectUrl(state: AppViewState, projectId: string | null, taskId: string | null) {
@@ -284,6 +284,12 @@ export function renderApp(state: AppViewState) {
                 },
                 onCloseChat: () => {
                   state.projectChatOpen = false;
+                },
+                onAddComment: (taskId, author, authorType, content) => {
+                  void addComment(state, state.activeProjectId!, taskId, author, authorType, content);
+                },
+                onUpdateReviewNotes: (taskId, content, updatedBy) => {
+                  void updateReviewNotes(state, state.activeProjectId!, taskId, content, updatedBy);
                 },
               })
             : nothing

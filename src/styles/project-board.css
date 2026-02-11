@@ -587,3 +587,167 @@
     margin: 0.5rem;
   }
 }
+
+/* Task Comments & Review Notes */
+.task-review-notes,
+.task-comments {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border, #333);
+}
+
+.task-review-notes h4,
+.task-comments h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.comment-count {
+  font-weight: normal;
+  color: var(--text-secondary, #888);
+  font-size: 0.85rem;
+}
+
+/* Review Notes */
+.review-notes-display {
+  background: var(--bg-secondary, #1a1a2e);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.review-notes-content {
+  margin: 0 0 0.25rem;
+  white-space: pre-wrap;
+  color: var(--text-primary, #e0e0e0);
+  font-size: 0.9rem;
+}
+
+.review-notes-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #888);
+}
+
+.review-notes-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.review-notes-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border, #333);
+  border-radius: 6px;
+  background: var(--bg-primary, #0f0f23);
+  color: var(--text-primary, #e0e0e0);
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.review-notes-form .btn {
+  align-self: flex-end;
+}
+
+/* Comments */
+.task-comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.task-comment {
+  background: var(--bg-secondary, #1a1a2e);
+  border-radius: 6px;
+  padding: 0.625rem 0.75rem;
+}
+
+.task-comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.task-comment-author {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.task-comment-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #888);
+}
+
+.task-comment-content {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-primary, #e0e0e0);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-comments-empty {
+  color: var(--text-secondary, #888);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 0 0 0.75rem;
+}
+
+.task-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-comment-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border, #333);
+  border-radius: 6px;
+  background: var(--bg-primary, #0f0f23);
+  color: var(--text-primary, #e0e0e0);
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.task-comment-form .btn {
+  align-self: flex-end;
+}
+
+/* Review Notes in Review Queue table */
+.review-notes-cell {
+  max-width: 200px;
+}
+
+.review-notes-truncated {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-notes-empty {
+  color: var(--text-secondary, #555);
+}
+
+/* Responsive: stack comment form on mobile */
+@media (max-width: 768px) {
+  .task-comments-list {
+    max-height: 200px;
+  }
+  .review-notes-cell {
+    max-width: 120px;
+  }
+}

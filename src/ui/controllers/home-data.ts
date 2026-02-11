@@ -12,6 +12,20 @@ export interface ProjectInfo {
   created?: string;
 }
 
+export interface TaskComment {
+  id: string;
+  author: string;
+  authorType: "human" | "agent";
+  content: string;
+  timestamp: string;
+}
+
+export interface TaskReviewNotes {
+  content: string;
+  updatedBy: string;
+  updatedAt: string;
+}
+
 export interface BoardTask {
   id: string;
   title: string;
@@ -24,6 +38,8 @@ export interface BoardTask {
   reviewType?: string;
   labels?: string[];
   description?: string;
+  comments?: TaskComment[];
+  reviewNotes?: TaskReviewNotes;
 }
 
 export interface BoardData {
@@ -48,6 +64,7 @@ export interface ReviewItem {
   assignee: string;
   priority: string;
   updated: string;
+  reviewNotes?: string;
 }
 
 export interface HomeData {
@@ -132,6 +149,7 @@ export async function loadHomeData(state: HomeDataState): Promise<void> {
             assignee: task.assignee || "unassigned",
             priority: task.priority || "p3",
             updated: task.updated || task.created || "",
+            reviewNotes: task.reviewNotes?.content,
           });
         }
       }

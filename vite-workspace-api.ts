@@ -30,9 +30,92 @@ export function workspaceApiPlugin(): Plugin {
       });
 
       server.middlewares.use("/api/board/", (req, res, next) => {
+        const urlPath = req.url?.replace(/^\//, "").replace(/\/$/, "") || "";
+
+        // Handle CORS preflight for PUT/POST
+        if (req.method === "OPTIONS") {
+          res.setHeader("Access-Control-Allow-Origin", "*");
+          res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+          res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+          res.statusCode = 204;
+          res.end();
+          return;
+        }
+
+        // POST /api/board/<projectId>/<taskId>/comments — add comment
+        if (req.method === "POST") {
+          const commentMatch = urlPath.match(/^(.+?)\/(.+?)\/comments$/);
+          if (commentMatch) {
+            const [, projectId, taskId] = commentMatch;
+            if (projectId.includes("..")) { res.statusCode = 400; res.end(JSON.stringify({ error: "Invalid project ID" })); return; }
+            let body = "";
+            req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+            req.on("end", () => {
+              try {
+                const { author, authorType, content } = JSON.parse(body);
+                if (!author || !content) { res.statusCode = 400; res.end(JSON.stringify({ error: "author and content required" })); return; }
+                const boardPath = path.join(WORKSPACE, `projects/${projectId}/board.json`);
+                const boardData = JSON.parse(fs.readFileSync(boardPath, "utf-8"));
+                const task = boardData.tasks?.find((t: any) => t.id === taskId);
+                if (!task) { res.statusCode = 404; res.end(JSON.stringify({ error: "Task not found" })); return; }
+                if (!task.comments) task.comments = [];
+                const comment = {
+                  id: `comment-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                  author,
+                  authorType: authorType || "human",
+                  content,
+                  timestamp: new Date().toISOString(),
+                };
+                task.comments.push(comment);
+                task.updated = new Date().toISOString();
+                boardData.lastUpdated = new Date().toISOString();
+                fs.writeFileSync(boardPath, JSON.stringify(boardData, null, 2));
+                res.setHeader("Content-Type", "application/json");
+                res.setHeader("Access-Control-Allow-Origin", "*");
+                res.end(JSON.stringify({ comment, task }));
+              } catch (err) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: String(err) }));
+              }
+            });
+            return;
+          }
+        }
+
+        // PUT /api/board/<projectId>/<taskId>/review-notes — set review notes
+        if (req.method === "PUT") {
+          const rnMatch = urlPath.match(/^(.+?)\/(.+?)\/review-notes$/);
+          if (rnMatch) {
+            const [, projectId, taskId] = rnMatch;
+            if (projectId.includes("..")) { res.statusCode = 400; res.end(JSON.stringify({ error: "Invalid project ID" })); return; }
+            let body = "";
+            req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+            req.on("end", () => {
+              try {
+                const { content, updatedBy } = JSON.parse(body);
+                if (!content || !updatedBy) { res.statusCode = 400; res.end(JSON.stringify({ error: "content and updatedBy required" })); return; }
+                const boardPath = path.join(WORKSPACE, `projects/${projectId}/board.json`);
+                const boardData = JSON.parse(fs.readFileSync(boardPath, "utf-8"));
+                const task = boardData.tasks?.find((t: any) => t.id === taskId);
+                if (!task) { res.statusCode = 404; res.end(JSON.stringify({ error: "Task not found" })); return; }
+                task.reviewNotes = { content, updatedBy, updatedAt: new Date().toISOString() };
+                task.updated = new Date().toISOString();
+                boardData.lastUpdated = new Date().toISOString();
+                fs.writeFileSync(boardPath, JSON.stringify(boardData, null, 2));
+                res.setHeader("Content-Type", "application/json");
+                res.setHeader("Access-Control-Allow-Origin", "*");
+                res.end(JSON.stringify({ reviewNotes: task.reviewNotes, task }));
+              } catch (err) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: String(err) }));
+              }
+            });
+            return;
+          }
+        }
+
         // POST /api/board/<projectId>/move — move task
         if (req.method === "POST") {
-          const urlPath = req.url?.replace(/^\//, "").replace(/\/$/, "") || "";
           const match = urlPath.match(/^(.+)\/move$/);
           if (!match) { next(); return; }
           const projectId = match[1];

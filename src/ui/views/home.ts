@@ -65,6 +65,9 @@ function renderReviewItem(item: ReviewItem, onReviewTaskClick: (projectId: strin
       <td>${item.projectName}</td>
       <td>@${item.assignee}</td>
       <td><span class="badge badge-priority-${item.priority}">${item.priority.toUpperCase()}</span></td>
+      <td class="review-notes-cell">${item.reviewNotes
+        ? html`<span class="review-notes-truncated" title="${item.reviewNotes}">${item.reviewNotes.length > 100 ? item.reviewNotes.slice(0, 100) + "…" : item.reviewNotes}</span>`
+        : html`<span class="review-notes-empty">—</span>`}</td>
     </tr>
   `;
 }
@@ -156,6 +159,7 @@ export function renderHome(props: HomeProps) {
                       <th scope="col">Project</th>
                       <th scope="col">Assignee</th>
                       <th scope="col">Priority</th>
+                      <th scope="col">Notes</th>
                     </tr>
                   </thead>
                   <tbody>
