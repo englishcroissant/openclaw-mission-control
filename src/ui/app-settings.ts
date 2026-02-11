@@ -1,6 +1,7 @@
 import type { OpenClawApp } from "./app.ts";
 import type { AgentsListResult } from "./types.ts";
 import { refreshChat } from "./app-chat.ts";
+import { loadProjectBoard } from "./controllers/project-board.ts";
 import {
   startLogsPolling,
   stopLogsPolling,
@@ -340,6 +341,25 @@ export function onPopState(host: SettingsHost) {
       sessionKey: session,
       lastActiveSessionKey: session,
     });
+  }
+
+  // Handle project/task deep link params on back/forward
+  const projectId = url.searchParams.get("project");
+  const taskId = url.searchParams.get("task");
+  const appHost = host as any;
+  if (projectId) {
+    if (appHost.activeProjectId !== projectId) {
+      appHost.activeProjectId = projectId;
+      void loadProjectBoard(appHost, projectId).then(() => {
+        if (taskId) {
+          appHost.projectBoard = { ...appHost.projectBoard, taskDetailId: taskId };
+        }
+      });
+    } else if (taskId !== (appHost.projectBoard?.taskDetailId ?? null)) {
+      appHost.projectBoard = { ...appHost.projectBoard, taskDetailId: taskId };
+    }
+  } else if (appHost.activeProjectId) {
+    appHost.activeProjectId = null;
   }
 
   setTabFromRoute(host, resolved);

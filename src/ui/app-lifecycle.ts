@@ -21,6 +21,7 @@ import {
   syncTabWithLocation,
   syncThemeWithSettings,
 } from "./app-settings.ts";
+import { applyProjectDeepLink } from "./app-render.ts";
 
 type LifecycleHost = {
   basePath: string;
@@ -55,6 +56,8 @@ export function handleConnected(host: LifecycleHost) {
   }
   startHomePolling(host as unknown as Parameters<typeof startHomePolling>[0]);
   startProjectBoardPolling(host as unknown as Parameters<typeof startProjectBoardPolling>[0]);
+  // Apply deep link params (e.g. ?project=xxx&task=yyy) after gateway connects
+  applyProjectDeepLink(host as any);
 }
 
 export function handleFirstUpdated(host: LifecycleHost) {

@@ -6,6 +6,7 @@ export type HomeProps = {
   homeData: HomeData;
   onRefresh: () => void;
   onProjectClick: (projectId: string) => void;
+  onReviewTaskClick: (projectId: string, taskId: string) => void;
   onOpenChat: () => void;
   chatOpen: boolean;
 };
@@ -44,9 +45,21 @@ function renderProjectCard(card: ProjectCard, onProjectClick: (id: string) => vo
   `;
 }
 
-function renderReviewItem(item: ReviewItem) {
+function renderReviewItem(item: ReviewItem, onReviewTaskClick: (projectId: string, taskId: string) => void) {
   return html`
-    <tr>
+    <tr
+      class="review-row-clickable"
+      @click=${() => onReviewTaskClick(item.projectId, item.taskId)}
+      role="button"
+      tabindex="0"
+      @keydown=${(e: KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onReviewTaskClick(item.projectId, item.taskId);
+        }
+      }}
+      aria-label="View task ${item.taskId}: ${item.title} in ${item.projectName}"
+    >
       <td><code class="review-task-id">${item.taskId}</code></td>
       <td>${item.title}</td>
       <td>${item.projectName}</td>
@@ -86,7 +99,7 @@ function parseStandup(content: string): {
 }
 
 export function renderHome(props: HomeProps) {
-  const { homeData, onRefresh, onProjectClick, onOpenChat, chatOpen } = props;
+  const { homeData, onRefresh, onProjectClick, onReviewTaskClick, onOpenChat, chatOpen } = props;
 
   if (homeData.loading && homeData.projects.length === 0) {
     return html`<div class="home-loading" role="status" aria-live="polite">Loading dashboard…</div>`;
@@ -146,7 +159,7 @@ export function renderHome(props: HomeProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    ${homeData.reviewQueue.map(renderReviewItem)}
+                    ${homeData.reviewQueue.map((item) => renderReviewItem(item, onReviewTaskClick))}
                   </tbody>
                 </table>
               </div>

@@ -218,6 +218,20 @@
   color: var(--color-accent, #6c63ff);
 }
 
+.review-row-clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.review-row-clickable:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.05));
+}
+
+.review-row-clickable:focus-visible {
+  outline: 2px solid var(--color-accent, #6c63ff);
+  outline-offset: -2px;
+}
+
 /* Standup */
 .home-standup {
   display: flex;

@@ -82,6 +82,40 @@ import { renderProjectBoard } from "./views/project-board.ts";
 import { loadHomeData } from "./controllers/home-data.ts";
 import { loadProjectBoard, moveTask, loadCommitDiff } from "./controllers/project-board.ts";
 
+/** Sync URL search params with current project/task selection */
+function syncProjectUrl(state: AppViewState, projectId: string | null, taskId: string | null) {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (projectId) {
+    url.searchParams.set("project", projectId);
+    if (taskId) {
+      url.searchParams.set("task", taskId);
+    } else {
+      url.searchParams.delete("task");
+    }
+  } else {
+    url.searchParams.delete("project");
+    url.searchParams.delete("task");
+  }
+  window.history.pushState({}, "", url.toString());
+}
+
+/** Check URL for project/task deep link params and apply them */
+export function applyProjectDeepLink(state: AppViewState) {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  const projectId = url.searchParams.get("project");
+  const taskId = url.searchParams.get("task");
+  if (projectId) {
+    state.activeProjectId = projectId;
+    void loadProjectBoard(state, projectId).then(() => {
+      if (taskId) {
+        state.projectBoard = { ...state.projectBoard, taskDetailId: taskId };
+      }
+    });
+  }
+}
+
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
 
@@ -219,12 +253,14 @@ export function renderApp(state: AppViewState) {
                 projectId: state.activeProjectId,
                 onBack: () => {
                   state.activeProjectId = null;
+                  syncProjectUrl(state, null, null);
                 },
                 onMoveTask: (taskId, newState) => {
                   void moveTask(state, state.activeProjectId!, taskId, newState);
                 },
                 onTaskDetail: (taskId) => {
                   state.projectBoard = { ...state.projectBoard, taskDetailId: taskId };
+                  syncProjectUrl(state, state.activeProjectId, taskId);
                 },
                 onCommitClick: (hash) => {
                   if (hash) {
@@ -261,6 +297,14 @@ export function renderApp(state: AppViewState) {
                 onProjectClick: (projectId) => {
                   state.activeProjectId = projectId;
                   void loadProjectBoard(state, projectId);
+                  syncProjectUrl(state, projectId, null);
+                },
+                onReviewTaskClick: (projectId, taskId) => {
+                  state.activeProjectId = projectId;
+                  void loadProjectBoard(state, projectId).then(() => {
+                    state.projectBoard = { ...state.projectBoard, taskDetailId: taskId };
+                  });
+                  syncProjectUrl(state, projectId, taskId);
                 },
                 chatOpen: state.homeChatOpen,
                 onOpenChat: () => {

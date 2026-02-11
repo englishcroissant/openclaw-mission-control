@@ -116,8 +116,30 @@
   flex-direction: column;
   gap: 0.5rem;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 500px;
+  max-height: calc(100vh - 280px);
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color, #444) transparent;
+}
+
+.board-column-tasks::-webkit-scrollbar {
+  width: 6px;
+}
+
+.board-column-tasks::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.board-column-tasks::-webkit-scrollbar-thumb {
+  background: var(--border-color, #444);
+  border-radius: 3px;
+}
+
+.board-column-tasks::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary, #888);
 }
 
 .board-empty {
@@ -545,7 +567,7 @@
   }
 
   .board-column-tasks {
-    max-height: 300px;
+    max-height: 50vh;
   }
 
   .project-board-layout {
