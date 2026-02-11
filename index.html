@@ -3,11 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpenClaw Control</title>
+    <title>OpenClaw Mission Control</title>
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <script>
+      // Pre-configure Gateway URL before app loads
+      (function() {
+        const settings = {
+          gatewayUrl: "ws://100.71.186.68:18789",
+          token: "",
+          sessionKey: "main",
+          lastActiveSessionKey: "main",
+          theme: "system",
+          chatFocusMode: false,
+          chatShowThinking: true,
+          splitRatio: 0.6,
+          navCollapsed: false,
+          navGroupsCollapsed: {}
+        };
+        localStorage.setItem("openclaw.control.settings.v1", JSON.stringify(settings));
+      })();
+    </script>
   </head>
   <body>
     <openclaw-app></openclaw-app>
