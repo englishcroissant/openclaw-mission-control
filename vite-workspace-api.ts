@@ -96,10 +96,12 @@ export function workspaceApiPlugin(): Plugin {
           return;
         }
         const projectDir = path.join(WORKSPACE, `projects/${projectId}`);
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Access-Control-Allow-Origin", "*");
         try {
-          // Get git log from workspace root (since project dir may not be a git repo itself)
+          const SEP = "|||";
           const gitOutput = execSync(
-            `git log --format='{"hash":"%H","author":"%an","timestamp":"%aI","message":"%s"}' -20 -- "${projectDir}"`,
+            `git log --format="%H${SEP}%an${SEP}%aI${SEP}%s" -20 -- "${projectDir}"`,
             { cwd: WORKSPACE, encoding: "utf-8", timeout: 5000 },
           );
           const commits = gitOutput
@@ -108,29 +110,24 @@ export function workspaceApiPlugin(): Plugin {
             .filter(Boolean)
             .map((line) => {
               try {
-                const c = JSON.parse(line);
-                // Count files changed for each commit
+                const [hash, author, timestamp, ...msgParts] = line.split(SEP);
+                const message = msgParts.join(SEP);
+                let filesChanged = 0;
                 try {
                   const files = execSync(
-                    `git diff-tree --no-commit-id --name-only -r ${c.hash} -- "${projectDir}"`,
+                    `git diff-tree --no-commit-id --name-only -r ${hash} -- "${projectDir}"`,
                     { cwd: WORKSPACE, encoding: "utf-8", timeout: 3000 },
                   );
-                  c.filesChanged = files.trim().split("\n").filter(Boolean).length;
-                } catch {
-                  c.filesChanged = 0;
-                }
-                return c;
+                  filesChanged = files.trim().split("\n").filter(Boolean).length;
+                } catch { /* ignore */ }
+                return { hash, author, timestamp, message, filesChanged };
               } catch {
                 return null;
               }
             })
             .filter(Boolean);
-          res.setHeader("Content-Type", "application/json");
-          res.setHeader("Access-Control-Allow-Origin", "*");
           res.end(JSON.stringify({ commits }));
-        } catch {
-          res.setHeader("Content-Type", "application/json");
-          res.setHeader("Access-Control-Allow-Origin", "*");
+        } catch (err) {
           res.end(JSON.stringify({ commits: [], warning: "No git history available" }));
         }
       });
