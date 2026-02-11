@@ -8,55 +8,9 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <style>
-      #debug-overlay {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        max-height: 200px;
-        overflow-y: auto;
-        background: rgba(0, 0, 0, 0.9);
-        color: #0f0;
-        font-family: monospace;
-        font-size: 11px;
-        padding: 10px;
-        z-index: 999999;
-        border-top: 2px solid #0f0;
-      }
-      #debug-overlay .log { margin: 2px 0; }
-      #debug-overlay .error { color: #f00; }
-      #debug-overlay .success { color: #0f0; }
-      #debug-overlay .info { color: #fa0; }
-    </style>
     <script>
-      // Debug logger
-      window.debugLog = function(msg, type = 'info') {
-        try {
-          const overlay = document.getElementById('debug-overlay') || createDebugOverlay();
-          if (overlay) {
-            const div = document.createElement('div');
-            div.className = `log ${type}`;
-            div.textContent = `[${new Date().toISOString().slice(11, 23)}] ${msg}`;
-            overlay.appendChild(div);
-            overlay.scrollTop = overlay.scrollHeight;
-          }
-        } catch {}
-        console.log(`[DEBUG] ${msg}`);
-      };
-      
-      function createDebugOverlay() {
-        if (!document.body) return null;
-        const overlay = document.createElement('div');
-        overlay.id = 'debug-overlay';
-        document.body.appendChild(overlay);
-        return overlay;
-      }
-
       // Pre-configure Gateway URL before app loads
       (function() {
-        debugLog('🚀 Initializing Mission Control...', 'info');
-        
         const settings = {
           gatewayUrl: "ws://100.71.186.68:18789",
           token: "38d96e2f252b5e85f4aeefb614a16e44456e6a4ca9860ca1",
@@ -69,47 +23,12 @@
           navCollapsed: false,
           navGroupsCollapsed: {}
         };
-        
         localStorage.setItem("openclaw.control.settings.v1", JSON.stringify(settings));
-        debugLog(`✓ Settings configured: ${settings.gatewayUrl}`, 'success');
-        
-        // Monitor app initialization
-        window.addEventListener('error', (e) => {
-          debugLog(`❌ Error: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
-        });
-        
-        window.addEventListener('unhandledrejection', (e) => {
-          debugLog(`❌ Unhandled rejection: ${e.reason}`, 'error');
-        });
-        
-        // Monitor custom element registration
-        const origDefine = customElements.define.bind(customElements);
-        customElements.define = function(name, constructor, options) {
-          debugLog(`✓ Custom element registered: <${name}>`, 'success');
-          return origDefine(name, constructor, options);
-        };
-        
-        debugLog('⏳ Waiting for main.ts module load...', 'info');
       })();
     </script>
   </head>
   <body>
     <openclaw-app></openclaw-app>
     <script type="module" src="/src/main.ts"></script>
-    <script>
-      // Monitor app element appearance
-      setTimeout(() => {
-        const app = document.querySelector('openclaw-app');
-        if (app) {
-          if (app.shadowRoot) {
-            debugLog('✓ App element has shadow root', 'success');
-          } else {
-            debugLog('⚠ App element exists but no shadow root yet', 'info');
-          }
-        } else {
-          debugLog('❌ openclaw-app element not found after 2s', 'error');
-        }
-      }, 2000);
-    </script>
   </body>
 </html>
